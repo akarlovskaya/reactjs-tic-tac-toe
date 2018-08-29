@@ -12,14 +12,59 @@ class Game extends Component {
 }
 export default Game;
 
+
 class Board extends Component {
+    constructor(props) {
+        super(props);
+        // set initial state
+        this.state = {
+            squares: Array(9).fill(null),
+            xIsNext: true
+        }
+    }
+
     renderSquare(i) {
-        return <Square value={i}/>
+        return (
+            <Square
+                value={this.state.squares[i]}
+                onClick={ () => this.handleClick(i) }
+            />
+        )
+    }
+
+    handleClick(i) {
+        // create new array
+        const squares = this.state.squares.slice();
+        // return if there is a winner or a Square is already filled
+        if ( calculateWinner(this.state.squares) || squares[i] ) {
+            return;
+        }
+        // define X or O
+        squares[i] = this.state.xIsNext ? 'X' : 'O';
+
+        this.setState({
+            squares: squares,
+            xIsNext: !this.state.xIsNext
+        })
     }
 
     render() {
+        let status;
+        const winner = calculateWinner(this.state.squares);
+
+        if (winner) {
+            status = 'Winner: ' + winner;
+        } else {
+            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+        }
+
+        if (!winner) {
+            status = '';
+        }
+
         return (
             <div>
+                <div className="status">{status}</div>
                 <div className="board-row">
                   {this.renderSquare(0)}
                   {this.renderSquare(1)}
@@ -40,35 +85,33 @@ class Board extends Component {
     }
 }
 
-class Square extends Component {
-    // add x when click on button
-    // it means we change state of button - change state of value
-    // first it was nothing, when - X
+// make Square component as functional component
+function Square(props) {
+    return(
+        <button className="square" onClick={props.onClick}>
+            {props.value}
+        </button>
+    )
+}
 
-    // define initial state of button
-    constructor(props) {
-        super(props);
-        this.state = {
-            value: ''
-        }
+// helper function to determine a winner
+function calculateWinner(squares) {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+        console.log(squares[a]);
+      return squares[a];
     }
-
-    // add click handler
-    handleClick() {
-        // when a button clicked, setState called. It tells React to re-render component and update clicked button state (child components will be updated too if they present)
-        this.setState({
-            value: 'X'
-        });
-    }
-
-    render() {
-        return (
-            <button
-                className="square"
-                onClick={this.handleClick.bind(this)}>
-                {/* show state of value here */}
-                {this.state.value}
-            </button>
-        )
-    }
+  }
+  return null;
 }
